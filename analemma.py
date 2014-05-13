@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # needed to print the degree symbol
 
 import datetime
@@ -14,7 +13,7 @@ import matplotlib.ticker as mticker
 class analemma():
 
 
-    def __init__(self, year=int(time.strftime("%Y")), city="Greenwich Observatory", lon='0.0', lat='51.48', color="k", label=None):
+    def __init__(self, year=int(time.strftime("%Y")), city="Greenwich Observatory", lon='0.0', lat='51.48', color="r"):
         self.obs = ephem.Observer()
         self.obs.lon = lon
         self.obs.lat = lat
@@ -24,12 +23,11 @@ class analemma():
         self.y = []
         self.year = year
         self.color = color
-        self.label = "%sº lat" % lat
 
     def compute(self):
         obs = self.obs
         for m in range(1, 13):
-            for d in range(1, 31):
+            for d in range(1, 33): # yeah I know its sloppy but it works
                 obs.date = '%d/%d/%d 13:00' % (self.year, m,  d)
                 obs.date = ephem.date(ephem.date('%d/%d/%d 13:00' % (self.year, m,  d)) - float(self.obs.lon) * 12 / math.pi * ephem.hour)
                 self.sun.compute(obs)
@@ -39,14 +37,11 @@ class analemma():
                 self.y.append(y)
 
     def plot(self):
-        plt.plot(self.y, self.x, '%s-' % self.color, label=self.label)
-        plt.title('analemma as seen from %s' % (self.city))
-        plt.xlabel('azimuth')
-        plt.ylabel('altitude')
-        plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d º'))
-        plt.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%d º'))
-        plt.legend()
-
+        plt.plot(self.y, self.x, '%s-' % self.color)
+        plt.title('analemma as seen from %s (%.1f latitude)' % (self.city, math.degrees(self.obs.lat)))
+        plt.xlabel('azimuth (degrees)')
+        plt.ylabel('altitude (degrees)')
+        
 
 if __name__ == '__main__':
     today = datetime.date.today()
@@ -60,4 +55,7 @@ if __name__ == '__main__':
     a = analemma(year=options.year, lon=options.lon, city=options.city, lat=options.lat)
     a.compute()
     a.plot()
-    plt.show()
+    fig1 = plt.gcf()
+    #plt.show()
+    plt.draw()
+    fig1.savefig('%s.png' % options.city, dpi=100)
